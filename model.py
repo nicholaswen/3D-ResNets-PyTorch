@@ -189,7 +189,16 @@ def generate_model(opt):
             pretrain = torch.load(opt.pretrain_path)
             assert opt.arch == pretrain['arch']
 
-            model.load_state_dict(pretrain['state_dict'])
+            #Removes module prefix from dict keys
+            from collections import OrderedDict
+            new_state_dict = OrderedDict()
+            for k, v in pretrain["state_dict"].items():
+                name = k
+                if (k[:7] == "module."):
+                    name = k[7:]
+                new_state_dict[name] = v
+
+            model.load_state_dict(new_state_dict)
 
             if opt.model == 'densenet':
                 model.classifier = nn.Linear(
